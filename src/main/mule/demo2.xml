@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	<flow name="demo2Flow3" doc:id="8738ae23-2aa8-4957-8749-1bd27bfdf2d5" >
+		<set-variable value="#[message.attributes.queryParams.'airline']" doc:name="Set Variable" doc:id="4a3012d4-f0fd-421c-9670-ace43764acb5" variableName="airline"/>
+		<choice doc:name="Choice" doc:id="ac1cd116-99c0-4eaa-801b-dba9c259fb28" >
+			<when expression='#[vars.airline == "american"]'>
+				<flow-ref doc:name="Flow Reference" doc:id="931fe074-4ee3-45d9-a85e-045828cc01fd" name="demo2Flow"/>
+			</when>
+			<when expression='#[vars.airline == "delta"]'>
+				<flow-ref doc:name="Flow Reference" doc:id="4b28de5d-59dd-4be4-9f65-ef90e166d011" name="demo2Flow1"/>
+			</when>
+			<when expression='#[vars.airline == "united"]'>
+				<flow-ref doc:name="Flow Reference" doc:id="2a02541b-cdfa-4257-a59e-e6d5dcc335c9" name="demo2Flow2"/>
+			</when>
+			<otherwise>
+				<flow-ref doc:name="Flow Reference" doc:id="3f80aad0-4bda-413d-b8ea-8d0db42ab963" name="demo2Flow4"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="92eb6c8b-a049-4e15-80e2-4216e9658dba" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="demo2Flow" doc:id="6f76d12b-c042-4f9b-971a-bb2844c6f57a" >
+		<db:select doc:name="Select" doc:id="706c4b1d-aff3-4277-856d-8b629d3d69f5" config-ref="Database_Config">
+			<db:sql >select * from american</db:sql>
+		</db:select>
+	</flow>
+	<flow name="demo2Flow2" doc:id="9f2eb839-619d-4da7-b46c-7c5cdbdae95a" >
+		<http:request method="GET" doc:name="Request" doc:id="6c6dbb20-a3dc-4cdf-a5b4-abcad3d468e9" path="/united/flights" config-ref="HTTP_Request_configuration"/>
+	</flow>
+	<flow name="demo2Flow4" doc:id="053d8c65-88b5-4c70-addf-e2308d598739" >
+		<salesforce:query doc:name="Query" doc:id="8aa72fda-3ba2-470c-8dc1-f06117206925" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query >select Name, Phone from Account</salesforce:salesforce-query>
+		</salesforce:query>
+	</flow>
+	<flow name="demo2Flow1" doc:id="d8c11097-5d87-404f-bc2e-96e610e4b011" >
+		<ee:transform doc:name="Transform Message" doc:id="ba8e1d9c-30bc-4fd2-a58a-bf351f66e8fe" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://soap.training.mulesoft.com/
+---
+{
+	ns0#listAllFlights: null
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<wsc:consume doc:name="Consume" doc:id="9334b38c-38c2-4ed6-9456-fea8a4022b54" config-ref="Web_Service_Consumer_Config" operation="listAllFlights"/>
+	</flow>
+</mule>
